@@ -1,7 +1,7 @@
 BASE_URL="localhost:3000"
 BIN_ID="xEGvLuV820"
 
-FULL_URL="http://$BASE_URL/$BIN_ID"
+FULL_URL="http://$BASE_URL/hooks/$BIN_ID"
 REQUESTS_FILE="./mock_requests.json"
 
 LENGTH=$(jq length "$REQUESTS_FILE")

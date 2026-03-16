@@ -15,7 +15,7 @@ export default defineConfig({
         target: backendTarget,
         ws: true,
       },
-      "^/[A-Za-z0-9_-]{10}$": backendTarget,
+      "^/hooks/[A-Za-z0-9_-]{10}$": backendTarget,
     },
   },
   resolve: {

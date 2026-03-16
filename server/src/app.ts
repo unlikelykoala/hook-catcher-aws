@@ -21,7 +21,7 @@ app.get("/health", (_req, res) => {
 // Mount API routes
 app.use("/api/bins", binHandler);
 
-// Mount catch-all webhook route here
-app.use("/", webhookHandler);
+// Mount webhook capture routes under a dedicated prefix to avoid SPA routing conflicts.
+app.use("/hooks", webhookHandler);
 
 export default app;
