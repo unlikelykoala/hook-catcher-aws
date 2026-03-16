@@ -1,7 +1,7 @@
 import { useEffect, useEffectEvent } from "react"
 import { z } from "zod"
 
-import { env } from "@/config/env"
+import { backendUrl } from "@/config/env"
 import { RequestDocumentSchema, type RequestDocument } from "@/types/request"
 
 const WebSocketRequestPayloadSchema = RequestDocumentSchema.omit({
@@ -21,10 +21,9 @@ type UseBinWebSocketOptions = {
 }
 
 function getBinWebSocketUrl(binId: string): string {
-  const apiUrl = new URL(env.API_URL)
-  const protocol = apiUrl.protocol === "https:" ? "wss:" : "ws:"
+  const protocol = backendUrl.protocol === "https:" ? "wss:" : "ws:"
 
-  return `${protocol}//${apiUrl.host}/ws?binId=${encodeURIComponent(binId)}`
+  return `${protocol}//${backendUrl.host}/ws?binId=${encodeURIComponent(binId)}`
 }
 
 function normalizeRequest(

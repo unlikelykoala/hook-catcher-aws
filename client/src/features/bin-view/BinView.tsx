@@ -41,7 +41,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner.tsx"
 
 import { useParams, useNavigate } from "react-router"
-import { env } from "@/config/env"
+import { backendOrigin } from "@/config/env"
 import * as binService from "./fetch_bins.ts"
 import React, { useEffect, useState } from "react"
 import type { BinWithRequests, RequestDocument } from "@/types/request.ts"
@@ -151,7 +151,7 @@ export default function BinView() {
 }
 
 function BasketInfoHeader({ bin }: { bin: BinWithRequests | null }) {
-  const basketUrl = bin ? `${env.API_URL}/hooks/${bin.bin.id}` : null
+  const basketUrl = bin ? `${backendOrigin}/hooks/${bin.bin.id}` : null
 
   return (
     <section className="mx-auto max-w-4xl p-3">
