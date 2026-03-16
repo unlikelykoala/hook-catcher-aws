@@ -1,10 +1,10 @@
 import {
   NavigationMenu,
-  NavigationMenuContent,
+  // NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
+  // NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
 
 import { useHideOnScrollDown } from "@/hooks/useHideOnScrollDown"
@@ -41,67 +41,67 @@ export default function NavBar({ children }: { children?: ReactNode }) {
   )
 }
 
-function BasketsDropdown() {
-  const placeholder = [
-    {
-      title: "abc",
-      href: "abc",
-      count: 123,
-    },
-    {
-      title: "lorem",
-      href: "lorem",
-      count: 42,
-    },
-    {
-      title: "ipsum",
-      href: "ipsum",
-      count: 0,
-    },
-  ]
-  return (
-    <NavigationMenu >
-      <NavigationMenuList>
-        <NavigationMenuItem className="flex">
-          <NavigationMenuTrigger
-            onPointerMove={(e) => e.preventDefault()}
-            onPointerLeave={(e) => e.preventDefault()}
-          >
-            Baskets
-          </NavigationMenuTrigger>
-          <NavigationMenuContent>
-            <ul className="grid w-50 gap-2">
-              {placeholder.map((component) => (
-                <MenuListItem
-                  key={component.title}
-                  title={component.title}
-                  href={component.href}
-                >
-                  {component.count} requests
-                </MenuListItem>
-              ))}
-            </ul>
-          </NavigationMenuContent>
-        </NavigationMenuItem>
-      </NavigationMenuList>
-    </NavigationMenu>
-  )
-}
+// function BasketsDropdown() {
+//   const placeholder = [
+//     {
+//       title: "abc",
+//       href: "abc",
+//       count: 123,
+//     },
+//     {
+//       title: "lorem",
+//       href: "lorem",
+//       count: 42,
+//     },
+//     {
+//       title: "ipsum",
+//       href: "ipsum",
+//       count: 0,
+//     },
+//   ]
+//   return (
+//     <NavigationMenu >
+//       <NavigationMenuList>
+//         <NavigationMenuItem className="flex">
+//           <NavigationMenuTrigger
+//             onPointerMove={(e) => e.preventDefault()}
+//             onPointerLeave={(e) => e.preventDefault()}
+//           >
+//             Baskets
+//           </NavigationMenuTrigger>
+//           <NavigationMenuContent>
+//             <ul className="grid w-50 gap-2">
+//               {placeholder.map((component) => (
+//                 <MenuListItem
+//                   key={component.title}
+//                   title={component.title}
+//                   href={component.href}
+//                 >
+//                   {component.count} requests
+//                 </MenuListItem>
+//               ))}
+//             </ul>
+//           </NavigationMenuContent>
+//         </NavigationMenuItem>
+//       </NavigationMenuList>
+//     </NavigationMenu>
+//   )
+// }
 
-function MenuListItem({
-  title,
-  children,
-  href,
-  ...props
-}: React.ComponentPropsWithoutRef<"li"> & { href: string }) {
-  return (
-    <li {...props}>
-      <NavigationMenuLink href={href}>
-        <div className="flex flex-col gap-1 text-sm">
-          <div className="leading-none font-medium">{title}</div>
-          <div className="line-clamp-2 text-muted-foreground">{children}</div>
-        </div>
-      </NavigationMenuLink>
-    </li>
-  )
-}
+// function MenuListItem({
+//   title,
+//   children,
+//   href,
+//   ...props
+// }: React.ComponentPropsWithoutRef<"li"> & { href: string }) {
+//   return (
+//     <li {...props}>
+//       <NavigationMenuLink href={href}>
+//         <div className="flex flex-col gap-1 text-sm">
+//           <div className="leading-none font-medium">{title}</div>
+//           <div className="line-clamp-2 text-muted-foreground">{children}</div>
+//         </div>
+//       </NavigationMenuLink>
+//     </li>
+//   )
+// }
