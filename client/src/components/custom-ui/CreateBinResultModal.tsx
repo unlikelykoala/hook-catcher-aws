@@ -30,7 +30,7 @@ export function CreateBinResultModal({
   const isSuccess = result.status === "success";
   const binId = isSuccess ? result.bin.id : null;
   const title = isSuccess ? "Created" : "Failed to Create Bin";
-  const sendUrl = binId ? `/${binId}` : null;
+  const sendUrl = binId ? `/hooks/${binId}` : null;
   const inspectUrl = binId ? `/bins/${binId}` : null;
   const fullSendUrl = sendUrl ? `${backendOrigin}${sendUrl}` : null;
 

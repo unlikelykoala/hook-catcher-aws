@@ -41,7 +41,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner.tsx"
 
 import { useParams, useNavigate } from "react-router"
-import { env } from "@/config/env"
+import { backendOrigin } from "@/config/env"
 import * as binService from "./fetch_bins.ts"
 import React, { useEffect, useState } from "react"
 import type { BinWithRequests, RequestDocument } from "@/types/request.ts"
@@ -51,12 +51,22 @@ import useBinWebSocket from "@/hooks/useBinWebSocket.ts"
 export default function BinView() {
   const [bin, setBin] = useState<BinWithRequests | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const { id } = useParams()
   const nav = useNavigate()
 
   async function getBin(id: string) {
-    setBin(await binService.getBin(id))
-    setLoading(false)
+    try {
+      setError(null)
+      setBin(await binService.getBin(id))
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : `Failed to fetch bin ${id}`
+      setError(message)
+      setBin(null)
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function deleteBin(id: string | undefined) {
@@ -78,11 +88,24 @@ export default function BinView() {
     let isSubscribed = true
 
     async function loadBin() {
-      const nextBin = await binService.getBin(id as string)
+      try {
+        setError(null)
+        const nextBin = await binService.getBin(id as string)
 
-      if (isSubscribed) {
-        setBin(nextBin)
-        setLoading(false)
+        if (isSubscribed) {
+          setBin(nextBin)
+        }
+      } catch (err) {
+        if (isSubscribed) {
+          const message =
+            err instanceof Error ? err.message : `Failed to fetch bin ${id}`
+          setError(message)
+          setBin(null)
+        }
+      } finally {
+        if (isSubscribed) {
+          setLoading(false)
+        }
       }
     }
 
@@ -118,6 +141,8 @@ export default function BinView() {
       <BasketInfoHeader bin={bin} />
       {loading ? (
         <Spinner className="mx-auto size-14 min-h-150" />
+      ) : error ? (
+        <EmptyRequestList message={error} />
       ) : (
         <RequestList requests={bin && bin.requests} />
       )}
@@ -126,16 +151,16 @@ export default function BinView() {
 }
 
 function BasketInfoHeader({ bin }: { bin: BinWithRequests | null }) {
-  const basketUrl = env.API_URL + "/" + (bin && bin.bin.id)
+  const basketUrl = bin ? `${backendOrigin}/hooks/${bin.bin.id}` : null
 
   return (
     <section className="mx-auto max-w-4xl p-3">
-      <h1 className="text-2xl font-bold">Bin: {bin && bin.bin.id}</h1>
+      <h1 className="text-2xl font-bold">Bin: {bin?.bin.id ?? ""}</h1>
       <p>
-        Bin URL: {basketUrl}
+        Bin URL: {basketUrl ?? ""}
         {basketUrl && <CopyButton content={basketUrl} />}
       </p>
-      <p>Request Count: {bin && bin.requests.length}</p>
+      <p>Request Count: {bin?.requests.length ?? 0}</p>
     </section>
   )
 }
@@ -154,7 +179,7 @@ function RequestList({ requests }: { requests: RequestDocument[] | null }) {
   )
 }
 
-function EmptyRequestList() {
+function EmptyRequestList({ message }: { message?: string }) {
   return (
     <div className="flex h-full min-h-150 items-center">
       <Empty>
@@ -162,9 +187,10 @@ function EmptyRequestList() {
           <EmptyMedia variant="icon">
             <CircleSlash2 />
           </EmptyMedia>
-          <EmptyTitle>No data</EmptyTitle>
+          <EmptyTitle>{message ? "Unable to load bin" : "No data"}</EmptyTitle>
           <EmptyDescription>
-            Send a request to the above URL and your request will appear here!
+            {message ??
+              "Send a request to the above URL and your request will appear here!"}
           </EmptyDescription>
         </EmptyHeader>
       </Empty>

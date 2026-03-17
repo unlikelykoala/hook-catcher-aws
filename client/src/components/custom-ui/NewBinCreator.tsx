@@ -39,7 +39,7 @@ export function NewBinCreator({ onCreateBin }: NewBinCreatorProps) {
               type="button"
               onClick={handleCreateBin}
               disabled={isCreating}
-              className="h-12 rounded-xl px-6 text-base"
+              className="h-12 cursor-pointer rounded-xl px-6 text-base hover:bg-primary/80 disabled:cursor-not-allowed"
             >
               {isCreating ? "Creating..." : "Create Bin"}
             </Button>

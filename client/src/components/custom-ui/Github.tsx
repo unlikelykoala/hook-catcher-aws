@@ -13,7 +13,11 @@ export default function GHInvertoCat({
 }: LinkParams) {
   return (
     <a href={url} aria-label="Visit the GitHub repository" className={className}>
-      <img src={InvertoCat} alt={altText} />
+      <img
+        src={InvertoCat}
+        alt={altText}
+        className="transition-all dark:invert dark:brightness-125"
+      />
     </a>
   )
 }

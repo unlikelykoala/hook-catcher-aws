@@ -12,11 +12,19 @@
 import * as z from "zod"
 
 const PREFIX = "VITE_APP_"
+const browserOrigin =
+  typeof window !== "undefined" ? window.location.origin : "http://localhost"
 
 const createEnv = () => {
   const EnvSchema = z.object({
-    API_URL: z.string(),
-    APP_URL: z.string().optional().default("http://localhost:3000"),
+    API_URL: z
+      .string()
+      .optional()
+      .transform((value) => value?.trim() ?? ""),
+    APP_URL: z
+      .string()
+      .optional()
+      .transform((value) => value?.trim() ?? ""),
     // ENABLE_API_MOCKING: z
     //   .string()
     //   .refine((s) => s === 'true' || s === 'false')
@@ -53,5 +61,6 @@ ${Object.entries(parsedEnv.error.flatten().fieldErrors)
 
 export const env = createEnv()
 
-export const backendUrl = new URL(env.API_URL)
+export const appOrigin = env.APP_URL || browserOrigin
+export const backendUrl = new URL(env.API_URL || "/", browserOrigin)
 export const backendOrigin = backendUrl.origin
