@@ -53,14 +53,11 @@ export function useBinWebSocket({
         )
 
         handleNewRequest(normalizeRequest(parsedMessage.payload))
-      } catch (error) {
-        console.error("Failed to process websocket message", error)
+      } catch {
       }
     }
 
-    webSocket.onclose = () => {
-      console.info(`WebSocket disconnected for bin ${binId}`)
-    }
+    webSocket.onclose = () => {}
 
     return () => {
       webSocket.close()
