@@ -5,7 +5,7 @@ const defaultConfig: MongoClientOptions = {
   connectTimeoutMS: 5000,
   serverSelectionTimeoutMS: 5000,
   maxPoolSize: 10,
-  retryWrites: true,
+  retryWrites: process.env.MONGO_RETRY_WRITES === 'true',
 };
 
 const defaultUri: string = process.env.MONGO_URI ?? "mongodb://localhost:27017";

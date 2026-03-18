@@ -8,7 +8,7 @@ const defaultConfig: ClientConfig = {
   user: process.env.DB_USER ?? "postgres",
   password: process.env.DB_PASSWORD ?? "",
   connectionTimeoutMillis: 5000,
-  ssl: false, // todo: fix ssl settings for deployed app
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
 };
 
 let client: Client | null = null;
