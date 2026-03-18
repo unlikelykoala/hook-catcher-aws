@@ -31,8 +31,7 @@ export function Home() {
         const data = await response.json();
         const parsedBins = PersistedBinsSchema.parse(data);
         setBins([...parsedBins].sort((a, b) => b.created_at.getTime() - a.created_at.getTime()));
-      } catch (err) {
-        console.error(err);
+      } catch {
       }
     }
 
