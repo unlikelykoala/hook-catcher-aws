@@ -1,4 +1,5 @@
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
+import { getServerConfig } from "./serverConfig";
 
 type AppSecrets = {
   MONGO_URI: string;
@@ -11,16 +12,6 @@ const DEFAULT_TTL_MS = 5 * 60 * 1000;
 let cachedSecrets: AppSecrets | null = null;
 let cacheExpiresAt = 0;
 let inFlightSecretsPromise: Promise<AppSecrets> | null = null;
-
-function getRequiredEnvVar(name: string): string {
-  const value = process.env[name];
-
-  if (!value) {
-    throw new Error(`Missing required environment variable: ${name}`);
-  }
-
-  return value;
-}
 
 function getSecretTtlMs(): number {
   const rawTtl = process.env.SECRETS_CACHE_TTL_MS;
@@ -72,12 +63,11 @@ function parseSecretString(secretString: string): AppSecrets {
 }
 
 async function fetchSecrets(): Promise<AppSecrets> {
-  const region = getRequiredEnvVar("AWS_REGION");
-  const secretId = getRequiredEnvVar("AWS_SECRETS_MANAGER_SECRET_ID");
-  const client = new SecretsManagerClient({ region });
+  const config = getServerConfig();
+  const client = new SecretsManagerClient({ region: config.AWS_REGION });
 
   const response = await client.send(
-    new GetSecretValueCommand({ SecretId: secretId }),
+    new GetSecretValueCommand({ SecretId: config.AWS_SECRETS_MANAGER_SECRET_ID }),
   );
 
   if (!response.SecretString) {

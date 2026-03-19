@@ -1,19 +1,21 @@
 import { Client, ClientConfig } from "pg";
+import { getServerConfig } from "../../config/serverConfig";
 import { getSecrets } from "../../config/secrets";
 
 let client: Client | null = null;
 
 async function buildDefaultConfig(): Promise<ClientConfig> {
+  const serverConfig = getServerConfig();
   const secrets = await getSecrets();
 
   return {
-    host: process.env.DB_HOST ?? "localhost",
-    port: Number(process.env.DB_PORT) || 5432,
-    database: process.env.DB_NAME ?? "hookcatcher",
+    host: serverConfig.DB_HOST,
+    port: serverConfig.DB_PORT,
+    database: serverConfig.DB_NAME,
     user: secrets.DB_USER,
     password: secrets.DB_PASSWORD,
     connectionTimeoutMillis: 5000,
-    ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : false,
+    ssl: serverConfig.DB_SSL ? { rejectUnauthorized: false } : false,
   };
 }
 

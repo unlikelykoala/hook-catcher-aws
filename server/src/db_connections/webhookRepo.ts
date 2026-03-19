@@ -30,7 +30,7 @@ export async function createRequestDocument(
 ): Promise<string> {
   const client = await mongoConnection.connect();
   const collection = client
-    .db(mongoConnection.MONGO_DB_NAME)
+    .db(mongoConnection.getMongoDbName())
     .collection(mongoConnection.MONGO_COLLECTION_NAME);
 
   const result = await collection.insertOne(document);
