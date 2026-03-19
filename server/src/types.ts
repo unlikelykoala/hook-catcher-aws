@@ -1,4 +1,5 @@
 import { IncomingHttpHeaders } from "http";
+import { ObjectId } from "mongodb";
 
 export interface Bin {
   id: string;
@@ -21,13 +22,21 @@ export interface RequestRecord {
   received_at: Date;
 }
 
-export interface RequestDocument {
+export interface RequestPayload {
   method: string;
   path: string;
   headers: IncomingHttpHeaders;
-  body: Record<string, any>;
+  body: any;
   bin_id: string;
   received_at: Date;
+}
+
+export interface MongoRequestDocument extends RequestPayload {
+  _id: ObjectId;
+}
+
+export interface RequestDocument extends RequestPayload {
+  _id: string;
 }
 
 export interface BinWithRequestDocuments {
@@ -36,6 +45,15 @@ export interface BinWithRequestDocuments {
 }
 
 export interface BroadcastRequest {
-  type: string;
+  type: "new_request";
   payload: RequestDocument;
+}
+
+export function serializeRequestDocument(
+  document: MongoRequestDocument,
+): RequestDocument {
+  return {
+    ...document,
+    _id: document._id.toHexString(),
+  };
 }

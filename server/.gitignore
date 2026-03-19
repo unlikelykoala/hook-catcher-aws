@@ -1,5 +1,6 @@
 node_modules/
 .env
+global-bundle.pem
 
 # Temporary files
 temp.json

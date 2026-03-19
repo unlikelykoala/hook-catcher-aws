@@ -1,10 +1,8 @@
 import { IncomingHttpHeaders } from "http";
 import { findBinById } from "../db_connections/binRepo";
-import {
-  createRequestDocument,
-  createRequestRecord,
-} from "../db_connections/webhookRepo";
-import { RequestDocument, RequestRecord } from "../types";
+import { createRequestDocument } from "../db_connections/requestDocument";
+import { createRequestRecord } from "../db_connections/webhookRepo";
+import { RequestPayload, RequestRecord } from "../types";
 import wsManager from "../websockets/connectionManager";
 
 export async function captureRequest(
@@ -30,7 +28,7 @@ export async function captureRequest(
   const received_at = new Date();
 
   // 4. Store full payload in MongoDB first
-  const document: RequestDocument = {
+  const document: RequestPayload = {
     bin_id: binId,
     method,
     path,
@@ -39,12 +37,12 @@ export async function captureRequest(
     received_at,
   };
 
-  const mongoId: string = await createRequestDocument(document);
+  const persistedDocument = await createRequestDocument(document);
 
   // 5. Store metadata + MongoDB pointer in Postgres
   const requestRecord = await createRequestRecord(
     binId,
-    mongoId,
+    persistedDocument._id,
     method,
     path,
     received_at
@@ -52,9 +50,9 @@ export async function captureRequest(
 
   //6. Push new incoming requests to client via websocket
   wsManager.broadcast(binId, {
-    type: "new_request", 
-    payload: document,
-  })
+    type: "new_request",
+    payload: persistedDocument,
+  });
 
   return requestRecord;
 }

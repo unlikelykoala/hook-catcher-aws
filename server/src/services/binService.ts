@@ -2,12 +2,14 @@ import { nanoid } from "nanoid";
 import {
   createBin as repoCreateBin,
   findBinById,
-  findRequestDocumentsByBinId,
   getAllBins as repoGetAllBins,
   deleteBin as repoDeleteBin,
-  deleteAllRequestDocumentsWithBinId,
   findExpiredBins,
 } from "../db_connections/binRepo";
+import {
+  deleteAllRequestDocumentsWithBinId,
+  findRequestDocumentsByBinId,
+} from "../db_connections/requestDocument";
 import { Bin, BinResponse, BinWithRequestDocuments } from "../types";
 
 const BIN_ID_LENGTH = 10;

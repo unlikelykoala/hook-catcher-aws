@@ -1,8 +1,10 @@
 import { z } from "zod";
 
-const NANOID_ID_PATTERN = /^[A-Za-z0-9_-]{10}$/;
-const SEND_URL_PATTERN = /^\/api\/hooks\/[A-Za-z0-9_-]{10}$/;
-const INSPECT_URL_PATTERN = /^\/bins\/[A-Za-z0-9_-]{10}$/;
+import {
+  INSPECT_URL_PATTERN,
+  NANOID_ID_PATTERN,
+  SEND_URL_PATTERN,
+} from "@/features/bins/lib/constants";
 
 export const PersistedBinSchema = z.object({
   id: z.string().refine((value) => NANOID_ID_PATTERN.test(value), {
@@ -34,20 +36,6 @@ export const BinApiResponseSchema = z.object({
   }),
 });
 
-export type Bin = z.infer<typeof BinSchema>;
-export type Bins = z.infer<typeof BinsSchema>;
-export type PersistedBin = z.infer<typeof PersistedBinSchema>;
-export type PersistedBins = z.infer<typeof PersistedBinsSchema>;
-export type BinApiResponse = z.infer<typeof BinApiResponseSchema>;
-
-export function toBin(response: BinApiResponse): Bin {
-  return {
-    ...response.bin,
-    sendUrl: response.sendUrl,
-    inspectUrl: response.inspectUrl,
-  };
-}
-
 export const BinPathSchema = z.object({
   path: z
     .string()
@@ -59,8 +47,6 @@ export const BinPathSchema = z.object({
       "Use only lowercase letters, numbers, and hyphens"
     ),
 });
-
-export type BinPathFormValues = z.infer<typeof BinPathSchema>;
 
 export function normalizeBinPath(value: string) {
   return value

@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 type NewBinCreatorProps = {
-  onCreateBin: () => void | Promise<void>;
-};
+  onCreateBin: () => void | Promise<void>
+}
 
 export function NewBinCreator({ onCreateBin }: NewBinCreatorProps) {
   const [isCreating, setIsCreating] = useState(false);
@@ -13,6 +14,7 @@ export function NewBinCreator({ onCreateBin }: NewBinCreatorProps) {
 
   async function handleCreateBin() {
     setIsCreating(true);
+
     try {
       await onCreateBin();
     } finally {

@@ -1,6 +1,5 @@
 import dbConnection from "./postgres/connection";
-import mongoConnection from "./mongo_db/connection";
-import { Bin, RequestDocument } from "../types";
+import { Bin } from "../types";
 
 export async function createBin(id: string): Promise<Bin> {
   const client = await dbConnection.connect();
@@ -19,19 +18,6 @@ export async function findBinById(id: string): Promise<Bin | null> {
   const result = await client.query(queryString, [id]);
 
   return (result.rows[0] as Bin) ?? null;
-}
-
-export async function findRequestDocumentsByBinId(
-  id: string,
-): Promise<RequestDocument[]> {
-  const client = await mongoConnection.connect();
-  const collection = client
-    .db(mongoConnection.getMongoDbName())
-    .collection<RequestDocument>(mongoConnection.MONGO_COLLECTION_NAME);
-
-  const result = await collection.find({ bin_id: id }).toArray();
-
-  return result;
 }
 
 export async function findExpiredBins(): Promise<Bin[]> {
@@ -57,15 +43,4 @@ export async function deleteBin(id: string): Promise<void> {
 
   const queryString = "DELETE FROM bins WHERE id = $1";
   await client.query(queryString, [id]);
-}
-
-export async function deleteAllRequestDocumentsWithBinId(
-  id: string,
-): Promise<void> {
-  const client = await mongoConnection.connect();
-  const collection = client
-    .db(mongoConnection.getMongoDbName())
-    .collection<RequestDocument>(mongoConnection.MONGO_COLLECTION_NAME);
-
-  await collection.deleteMany({ bin_id: id });
 }
