@@ -1,6 +1,6 @@
-import { z } from "zod"
+import { z } from "zod";
 
-import { PersistedBinSchema } from "@/features/bins/schemas/bin"
+import { PersistedBinSchema } from "@/features/bins/schemas/bin";
 
 export const RequestDocumentSchema = z.object({
   _id: z.string(),
@@ -14,9 +14,9 @@ export const RequestDocumentSchema = z.object({
     ),
   bin_id: z.string(),
   received_at: z.coerce.date(),
-})
+});
 
 export const BinWithRequestsSchema = z.object({
   bin: PersistedBinSchema,
   requests: z.array(RequestDocumentSchema),
-})
+});

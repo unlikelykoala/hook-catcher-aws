@@ -1,4 +1,4 @@
-import invertocat from "@/assets/GitHub_Invertocat_Black.svg"
+import invertocat from "@/assets/GitHub_Invertocat_Black.svg";
 
 type GitHubLinkProps = {
   url: string
@@ -19,5 +19,5 @@ export default function GitHubLink({
         className="transition-all dark:invert dark:brightness-125"
       />
     </a>
-  )
+  );
 }

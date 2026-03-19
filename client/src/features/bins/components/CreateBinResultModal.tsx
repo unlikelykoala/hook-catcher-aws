@@ -1,15 +1,15 @@
-import { Link } from "react-router-dom"
+import { Link } from "react-router-dom";
 
-import CopyButton from "@/components/common/CopyButton"
-import { Button } from "@/components/ui/button"
+import CopyButton from "@/components/common/CopyButton";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
-} from "@/components/ui/card"
-import { getInspectPath, getSendUrl } from "@/features/bins/lib/urls"
-import type { PersistedBin } from "@/features/bins/types"
+} from "@/components/ui/card";
+import { getInspectPath, getSendUrl } from "@/features/bins/lib/urls";
+import type { PersistedBin } from "@/features/bins/types";
 
 export type CreateBinResult =
   | { status: "success"; bin: PersistedBin }
@@ -24,13 +24,13 @@ export function CreateBinResultModal({
   result,
   onClose,
 }: CreateBinResultModalProps) {
-  if (!result) return null
+  if (!result) return null;
 
-  const isSuccess = result.status === "success"
-  const binId = isSuccess ? result.bin.id : null
-  const title = isSuccess ? "Created" : "Failed to Create Bin"
-  const sendUrl = binId ? getSendUrl(binId) : null
-  const inspectPath = binId ? getInspectPath(binId) : "/"
+  const isSuccess = result.status === "success";
+  const binId = isSuccess ? result.bin.id : null;
+  const title = isSuccess ? "Created" : "Failed to Create Bin";
+  const sendUrl = binId ? getSendUrl(binId) : null;
+  const inspectPath = binId ? getInspectPath(binId) : "/";
 
   return (
     <div
@@ -98,5 +98,5 @@ export function CreateBinResultModal({
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }

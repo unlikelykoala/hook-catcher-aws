@@ -1,4 +1,4 @@
-import type { z } from "zod"
+import type { z } from "zod";
 
 import type {
   BinApiResponseSchema,
@@ -7,11 +7,11 @@ import type {
   BinsSchema,
   PersistedBinSchema,
   PersistedBinsSchema,
-} from "@/features/bins/schemas/bin"
+} from "@/features/bins/schemas/bin";
 import type {
   BinWithRequestsSchema,
   RequestDocumentSchema,
-} from "@/features/bins/schemas/request"
+} from "@/features/bins/schemas/request";
 
 export type Bin = z.infer<typeof BinSchema>
 export type Bins = z.infer<typeof BinsSchema>

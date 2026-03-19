@@ -1,6 +1,6 @@
-import GitHubLink from "@/components/common/GitHubLink"
+import GitHubLink from "@/components/common/GitHubLink";
 
-import { AppRouter } from "./router"
+import { AppRouter } from "./router";
 
 export default function App() {
   return (
@@ -11,5 +11,5 @@ export default function App() {
         url="https://github.com/ls-capstone-team-one/hook-catcher"
       />
     </>
-  )
+  );
 }

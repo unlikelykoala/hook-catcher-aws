@@ -9,11 +9,11 @@
   https://github.com/alan2207/bulletproof-react/blob/master/apps/react-vite/src/config/env.ts
  */
 
-import * as z from "zod"
+import * as z from "zod";
 
-const PREFIX = "VITE_APP_"
+const PREFIX = "VITE_APP_";
 const browserOrigin =
-  typeof window !== "undefined" ? window.location.origin : "http://localhost"
+  typeof window !== "undefined" ? window.location.origin : "http://localhost";
 
 const createEnv = () => {
   const EnvSchema = z.object({
@@ -31,19 +31,19 @@ const createEnv = () => {
     //   .transform((s) => s === 'true')
     //   .optional(),
     // APP_MOCK_API_PORT: z.string().optional().default('8080'),
-  })
+  });
 
   const envVars = Object.entries(import.meta.env).reduce<
     Record<string, string>
   >((acc, curr) => {
-    const [key, value] = curr
+    const [key, value] = curr;
     if (key.startsWith(PREFIX)) {
-      acc[key.replace(PREFIX, "")] = value
+      acc[key.replace(PREFIX, "")] = value;
     }
-    return acc
-  }, {})
+    return acc;
+  }, {});
 
-  const parsedEnv = EnvSchema.safeParse(envVars)
+  const parsedEnv = EnvSchema.safeParse(envVars);
 
   if (!parsedEnv.success) {
     throw new Error(
@@ -53,14 +53,14 @@ ${Object.entries(parsedEnv.error.flatten().fieldErrors)
   .map(([k, v]) => `- ${k}: ${v}`)
   .join("\n")}
 `
-    )
+    );
   }
 
-  return parsedEnv.data
-}
+  return parsedEnv.data;
+};
 
-export const env = createEnv()
+export const env = createEnv();
 
-export const appOrigin = env.APP_URL || browserOrigin
-export const backendUrl = new URL(env.API_URL || "/", browserOrigin)
-export const backendOrigin = backendUrl.origin
+export const appOrigin = env.APP_URL || browserOrigin;
+export const backendUrl = new URL(env.API_URL || "/", browserOrigin);
+export const backendOrigin = backendUrl.origin;

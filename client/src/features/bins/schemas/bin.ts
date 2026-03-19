@@ -1,10 +1,10 @@
-import { z } from "zod"
+import { z } from "zod";
 
 import {
   INSPECT_URL_PATTERN,
   NANOID_ID_PATTERN,
   SEND_URL_PATTERN,
-} from "@/features/bins/lib/constants"
+} from "@/features/bins/lib/constants";
 
 export const PersistedBinSchema = z.object({
   id: z.string().refine((value) => NANOID_ID_PATTERN.test(value), {
@@ -12,7 +12,7 @@ export const PersistedBinSchema = z.object({
   }),
   created_at: z.coerce.date(),
   expires_at: z.coerce.date(),
-})
+});
 
 export const BinSchema = PersistedBinSchema.extend({
   sendUrl: z.string().refine((value) => SEND_URL_PATTERN.test(value), {
@@ -21,10 +21,10 @@ export const BinSchema = PersistedBinSchema.extend({
   inspectUrl: z.string().refine((value) => INSPECT_URL_PATTERN.test(value), {
     message: "inspectUrl must match /bins/{id}",
   }),
-})
+});
 
-export const PersistedBinsSchema = z.array(PersistedBinSchema)
-export const BinsSchema = z.array(BinSchema)
+export const PersistedBinsSchema = z.array(PersistedBinSchema);
+export const BinsSchema = z.array(BinSchema);
 
 export const BinApiResponseSchema = z.object({
   bin: PersistedBinSchema,
@@ -34,7 +34,7 @@ export const BinApiResponseSchema = z.object({
   inspectUrl: z.string().refine((value) => INSPECT_URL_PATTERN.test(value), {
     message: "inspectUrl must match /bins/{id}",
   }),
-})
+});
 
 export const BinPathSchema = z.object({
   path: z
@@ -46,12 +46,12 @@ export const BinPathSchema = z.object({
       /^[a-zA-Z0-9]+$/,
       "Use only lowercase letters, numbers, and hyphens"
     ),
-})
+});
 
 export function normalizeBinPath(value: string) {
   return value
     .toLowerCase()
     .trim()
     .replace(/\s+/g, "-")
-    .replace(/[^a-zA-Z0-9]/g, "")
+    .replace(/[^a-zA-Z0-9]/g, "");
 }

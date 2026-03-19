@@ -1,7 +1,7 @@
-import { StrictMode, type ReactNode } from "react"
-import { Toaster } from "sonner"
+import { StrictMode, type ReactNode } from "react";
+import { Toaster } from "sonner";
 
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "@/components/theme-provider";
 
 type AppProvidersProps = {
   children: ReactNode
@@ -15,5 +15,5 @@ export function AppProviders({ children }: AppProvidersProps) {
         <Toaster />
       </ThemeProvider>
     </StrictMode>
-  )
+  );
 }

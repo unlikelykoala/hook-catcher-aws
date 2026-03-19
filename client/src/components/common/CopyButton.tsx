@@ -1,7 +1,7 @@
-import { Copy } from "lucide-react"
+import { Copy } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type CopyButtonProps = {
   content: string | null
@@ -23,5 +23,5 @@ export default function CopyButton({
     >
       <Copy />
     </Button>
-  )
+  );
 }

@@ -1,21 +1,21 @@
-import { FishingHook } from "lucide-react"
-import { type ReactNode } from "react"
-import { Link } from "react-router-dom"
+import { FishingHook } from "lucide-react";
+import { type ReactNode } from "react";
+import { Link } from "react-router-dom";
 
 import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-} from "@/components/ui/navigation-menu"
-import { useHideOnScrollDown } from "@/hooks/useHideOnScrollDown"
+} from "@/components/ui/navigation-menu";
+import { useHideOnScrollDown } from "@/hooks/useHideOnScrollDown";
 
 type NavBarProps = {
   children?: ReactNode
 }
 
 export default function NavBar({ children }: NavBarProps) {
-  const hidden = useHideOnScrollDown()
+  const hidden = useHideOnScrollDown();
 
   return (
     <div
@@ -37,5 +37,5 @@ export default function NavBar({ children }: NavBarProps) {
         <div className="flex items-center gap-2">{children}</div>
       </NavigationMenu>
     </div>
-  )
+  );
 }

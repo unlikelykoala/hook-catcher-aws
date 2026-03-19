@@ -1,7 +1,7 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom"
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 
-import { BinViewPage } from "@/features/bins/pages/BinViewPage"
-import { HomePage } from "@/features/bins/pages/HomePage"
+import { BinViewPage } from "@/features/bins/pages/BinViewPage";
+import { HomePage } from "@/features/bins/pages/HomePage";
 
 export function AppRouter() {
   return (
@@ -11,5 +11,5 @@ export function AppRouter() {
         <Route path="/bins/:id" element={<BinViewPage />} />
       </Routes>
     </BrowserRouter>
-  )
+  );
 }
