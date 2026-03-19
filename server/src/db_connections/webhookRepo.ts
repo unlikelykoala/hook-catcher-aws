@@ -1,6 +1,5 @@
 import dbConnection from "./postgres/connection";
-import mongoConnection from "./mongo_db/connection";
-import { RequestDocument, RequestRecord } from "../types";
+import { RequestRecord } from "../types";
 
 // Inserting request to Postgres DB
 export async function createRequestRecord(
@@ -22,18 +21,4 @@ export async function createRequestRecord(
   ]);
 
   return result.rows[0] as RequestRecord;
-}
-
-// Inserting request payload to MongoDB
-export async function createRequestDocument(
-  document: RequestDocument,
-): Promise<string> {
-  const client = await mongoConnection.connect();
-  const collection = client
-    .db(mongoConnection.getMongoDbName())
-    .collection(mongoConnection.MONGO_COLLECTION_NAME);
-
-  const result = await collection.insertOne(document);
-
-  return result.insertedId.toHexString();
 }

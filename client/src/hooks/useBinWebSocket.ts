@@ -4,15 +4,9 @@ import { z } from "zod"
 import { backendUrl } from "@/config/env"
 import { RequestDocumentSchema, type RequestDocument } from "@/types/request"
 
-const WebSocketRequestPayloadSchema = RequestDocumentSchema.omit({
-  _id: true,
-}).extend({
-  _id: z.string().optional(),
-})
-
 const BinWebSocketMessageSchema = z.object({
   type: z.literal("new_request"),
-  payload: WebSocketRequestPayloadSchema,
+  payload: RequestDocumentSchema,
 })
 
 type UseBinWebSocketOptions = {
@@ -24,15 +18,6 @@ function getBinWebSocketUrl(binId: string): string {
   const protocol = backendUrl.protocol === "https:" ? "wss:" : "ws:"
 
   return `${protocol}//${backendUrl.host}/ws?binId=${encodeURIComponent(binId)}`
-}
-
-function normalizeRequest(
-  payload: z.infer<typeof WebSocketRequestPayloadSchema>
-): RequestDocument {
-  return RequestDocumentSchema.parse({
-    ...payload,
-    _id: payload._id ?? crypto.randomUUID(),
-  })
 }
 
 export function useBinWebSocket({
@@ -52,7 +37,7 @@ export function useBinWebSocket({
           JSON.parse(event.data)
         )
 
-        handleNewRequest(normalizeRequest(parsedMessage.payload))
+        handleNewRequest(parsedMessage.payload)
       } catch {
       }
     }
