@@ -1,144 +1,170 @@
 # HookCatcher Backend
 
-Express + TypeScript backend for HookCatcher, a RequestBin-style webhook capture tool.
+Express + TypeScript backend for HookCatcher, a RequestBin-style webhook capture and inspection tool.
 
-### Prerequisites
+## Prerequisites
 
-- Node.js (v18 or later)
+- Node.js 18+
 - npm
+- PostgreSQL
+- MongoDB
 
-### Setup
+## Available Scripts
 
-1. Clone the repo and install dependencies:
+| Script | Description |
+| --- | --- |
+| `npm run dev` | Starts the backend with `nodemon` and `ts-node` |
+| `npm run build` | Compiles TypeScript to `dist/` |
+| `npm start` | Runs the compiled server from `dist/index.js` |
 
-   ```bash
-   npm install
-   ```
+## Running the Backend
 
-2. Start the development server:
-
-   ```bash
-   npm run dev
-   ```
-
-   The server will start on `http://localhost:3000` (or whatever `PORT` is set to in `.env`). Nodemon will watch for file changes and restart automatically.
-
-### Available Scripts
-
-| Script          | Description                             |
-| --------------- | --------------------------------------- |
-| `npm run dev`   | Start dev server with nodemon + ts-node |
-| `npm run build` | Compile TypeScript to `dist/`           |
-| `npm start`     | Run the compiled JS from `dist/`        |
-
-### Database Setup
-
-- PostgreSQL stores relational data about created bins and incoming requests stored in them.
-- MongoDB stores the raw webhook request payloads as blobs.
-
-Connection files for both databases are in `src/db_connections`, each in their corresponsing subdirectories.
-
-#### Environment Variables
-
-1. Create a `.env` file in the `server` root of the project (listed under `.gitignore` - never commit). `.env.example` can be used as a template. Connection modules use default values when the environment variables have not been set. To copy the development content directly from `.env.example` to `.env`:
-
-   ```bash
-      cp .env.example .env
-   ```
-
-If you're not sure what username and password to use:
+Install dependencies and start the dev server:
 
 ```bash
-# get your username
-psql -c "SELECT current_user;"
-
-# set a new password (be sure to write it down!)
-psql -c "ALTER USER <username> PASSWORD '<new_passowrd>';"
+npm install
+npm run dev
 ```
 
-#### Running databases locally
+The server listens on `http://localhost:3000` by default. You can override the port with `PORT`.
 
-Background info:
+The entrypoint loads `dotenv`, so local development can use a `.env` file in the `server/` directory. There is currently no `.env.example` file in this package.
 
-- `mongod` / `postgresql` are the server processes
-- `mongosh` / `psql` are the client applications that allow you to connect to the server via your shell
+## Data Storage
 
-##### MacOS
+- PostgreSQL stores bin metadata and other relational records.
+- MongoDB stores captured webhook payloads and request documents.
 
-1. To install and run PostgreSQL:
+The database connection code lives under `src/db_connections/`.
 
-   ```bash
-   brew install postgresql
-   brew services start postgresql
-   ```
+## Configuration
 
-2. To install and run MongoDB:
+### Local and Non-Production Behavior
 
-   ```bash
-   brew tap mongodb/brew
-   brew install mongodb-community
-   brew services start mongodb-community
-   ```
+When `NODE_ENV` is anything other than `production`, the backend reads its non-secret configuration directly from environment variables.
 
-3. To ensure both databases are running:
-   ```bash
-   brew services list
-   ```
+Required non-secret variables:
 
-Both `postgresql` and `mongodb-community` should be listed with a status of `started` after the above command is run.
+- `DB_HOST`
+- `DB_PORT`
+- `DB_NAME`
+- `DB_SSL`
+- `MONGO_DB_NAME`
+- `MONGO_RETRY_WRITES`
+- `AWS_REGION`
+- `AWS_SECRETS_MANAGER_SECRET_ID`
 
-##### Linux
+`DB_PORT` must be a positive integer. `DB_SSL` and `MONGO_RETRY_WRITES` must be the string `true` or `false`.
 
-Written for Ubuntu 22.04 LTS, may vary for other OS
+Important current constraint: local development still resolves secrets through `getSecrets()` and the AWS Secrets Manager client. The codebase does not implement a separate local secret source such as plain environment variables for `MONGO_URI`, `DB_USER`, or `DB_PASSWORD`. In practice, local development therefore still needs:
 
-Check to see if it's already installed
+- AWS credentials available to the AWS SDK
+- a reachable secret in Secrets Manager
+- `AWS_REGION` and `AWS_SECRETS_MANAGER_SECRET_ID` pointing at that secret
+
+### Production Behavior
+
+When `NODE_ENV=production`, the backend fetches non-secret configuration from AWS Systems Manager Parameter Store and then fetches secret values from AWS Secrets Manager.
+
+Parameter Store keys currently hardcoded in `src/config/serverConfig.ts`:
+
+- `/hookcatcher/prod/aws/region`
+- `/hookcatcher/prod/aws/sm_secret_id`
+- `/hookcatcher/prod/mongo/db_name`
+- `/hookcatcher/prod/mongo/retry_writes`
+- `/hookcatcher/prod/postgres/db_name`
+- `/hookcatcher/prod/postgres/host`
+- `/hookcatcher/prod/postgres/port`
+- `/hookcatcher/prod/postgres/ssl`
+
+Runtime sequence:
+
+1. The server starts and calls `loadServerConfig()`.
+2. In production, the backend reads the Parameter Store values above.
+3. The secret id is read from `/hookcatcher/prod/aws/sm_secret_id`.
+4. The backend then fetches that secret from Secrets Manager in `AWS_REGION`.
+5. The parsed config is cached in-process for the lifetime of the server, and secrets are cached in-process with a default TTL of 5 minutes.
+
+The SSM client bootstraps with `process.env.AWS_REGION` if present, otherwise it defaults to `us-east-1` so it can locate the Parameter Store entries needed for startup.
+
+### Secrets Manager Payload
+
+The backend expects the referenced Secrets Manager secret to contain a JSON object with these fields:
+
+- `MONGO_URI`
+- `DB_USER`
+- `DB_PASSWORD`
+
+`SECRETS_CACHE_TTL_MS` can be set to override the default 5-minute secret cache TTL.
+
+## Local Database Setup
+
+Background:
+
+- `postgresql` and `mongod` are the database server processes
+- `psql` and `mongosh` are the shell clients used to connect to them
+
+### macOS
+
+Install and start PostgreSQL:
 
 ```bash
-psql  # should launch the postgresql client without errors
-# or
-dpkg -l postgresql postgresql-contrib  # should list both packages & versions
+brew install postgresql
+brew services start postgresql
 ```
 
-To install and run PostgreSQL:
+Install and start MongoDB:
+
+```bash
+brew tap mongodb/brew
+brew install mongodb-community
+brew services start mongodb-community
+```
+
+Check both services:
+
+```bash
+brew services list
+```
+
+### Linux
+
+These commands were written for Ubuntu 22.04 and may vary on other distributions.
+
+Check whether PostgreSQL is already installed:
+
+```bash
+psql
+```
+
+Or:
+
+```bash
+dpkg -l postgresql postgresql-contrib
+```
+
+Install and start PostgreSQL:
 
 ```bash
 sudo apt update
 sudo apt install postgresql postgresql-contrib
-sudo systemctl status postgresql  # service should be running
+sudo systemctl status postgresql
 ```
 
-If the service isn't running, then start it and enable run on startup:
+If PostgreSQL is not running:
 
 ```bash
 sudo systemctl start postgresql
 sudo systemctl enable postgresql
 ```
 
-To install and run MongoDB:
-Follow the [instructions](https://www.mongodb.com/docs/manual/administration/install-community/?operating-system=linux&linux-distribution=red-hat&linux-package=default&search-linux=with-search-linux) for installing the MongoDB Self-managed Community Edition
+Install MongoDB by following the [MongoDB Community Edition instructions](https://www.mongodb.com/docs/manual/administration/install-community/?operating-system=linux&linux-distribution=red-hat&linux-package=default&search-linux=with-search-linux), then start it:
 
-Start the `mongod` process:
-
-```
+```bash
 sudo systemctl start mongod
 ```
 
-Expected output:
-
-```bash
-$ sudo systemctl status mongod
-● mongod.service - MongoDB Database Server
-     Loaded: loaded (/lib/systemd/system/mongod.service; disabled; vendor preset: enabled)
-     Active: active (running) since Wed 2026-03-11 17:45:11 EDT; 1s ago
-       Docs: https://docs.mongodb.org/manual
-   Main PID: 44647 (mongod)
-     Memory: 102.0M
-        CPU: 406ms
-     CGroup: /system.slice/mongod.service
-             └─44647 /usr/bin/mongod --config /etc/mongod.conf
-```
-
-If you get an error with `status=14`, try enabling read permissions and re-trying:
+If `mongod` fails with `status=14`, these ownership fixes may help:
 
 ```bash
 sudo chown -R mongodb:mongodb /var/lib/mongodb
@@ -146,50 +172,70 @@ sudo chown -R mongodb:mongodb /var/log/mongodb
 sudo chown mongodb:mongodb /tmp/mongodb-27017.sock
 ```
 
-3. To ensure both databases are running:
-   ```bash
-   sudo systemctl status postgresql mongod
-   ```
+Check both services:
 
-### Prep the databases for first run
+```bash
+sudo systemctl status postgresql mongod
+```
 
-#### Postgres
+## Preparing Databases for First Run
 
-Create the database and ensure the creation was successful:
+### PostgreSQL
+
+Create the database:
 
 ```bash
 sudo -u postgres createdb hookcatcher
+```
 
-# this is just one way to verify success
+Verify it exists:
+
+```bash
 sudo -u postgres psql -l | grep hookcatcher
 ```
 
-Create the schema
+Apply the schema from the `server/` directory:
 
 ```bash
-# assumes that you're in the project root
 psql -d hookcatcher -f ./src/db_connections/postgres/schema.sql
 ```
 
-#### Mongo
+If you are unsure which PostgreSQL user to use locally:
 
-No manual setup is needed for MongoDB. Unlike PostgreSQL, MongoDB creates databases and collections automatically on first write. As long as mongod is running, the app will auto-create the hookcatcher database and request_payloads collection when the first webhook is captured.
-
-### Backend Structure
-
+```bash
+psql -c "SELECT current_user;"
 ```
+
+To set a password for that user:
+
+```bash
+psql -c "ALTER USER <username> PASSWORD '<new_password>';"
+```
+
+### MongoDB
+
+No manual schema setup is required for MongoDB. As long as MongoDB is running and the configured `MONGO_URI` is valid, the application creates the database and collection on first write.
+
+## Backend Structure
+
+```text
 src/
-├── index.ts          # Server entry point (listen)
-├── app.ts            # Express app config and middleware
-├── handlers/         # Route handlers (controllers)
-├── services/         # Business logic
-├── db_connections/   # Database queries (PostgreSQL + MongoDB)
+├── index.ts
+├── app.ts
+├── handlers/
+├── services/
+├── db_connections/
+├── config/
+├── cleanup/
+└── websockets/
 ```
 
-**Handler → Service → Repo(db_connections)** — handlers receive HTTP requests and delegate to services, services contain business logic and delegate to repos, repos talk to the databases.
+Request flow follows `handler -> service -> db_connections`: handlers receive HTTP requests, services hold business logic, and database modules talk to PostgreSQL or MongoDB.
 
-![alt text](code-architecture-diagram.png)
+![Backend architecture](code-architecture-diagram.png)
 
-### Design Decisions
+## Design Notes
+
+The diagrams below are still useful as high-level references for the backend design and layering:
 
 ![Backend implementation decisions](design-decisions.png)
