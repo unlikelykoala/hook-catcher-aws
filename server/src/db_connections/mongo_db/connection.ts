@@ -1,19 +1,27 @@
 import { MongoClient, MongoClientOptions } from "mongodb";
-
-// Default connection configuration
-const defaultConfig: MongoClientOptions = {
-  connectTimeoutMS: 5000,
-  serverSelectionTimeoutMS: 5000,
-  maxPoolSize: 10,
-  retryWrites: process.env.MONGO_RETRY_WRITES === 'true',
-};
-
-const defaultUri: string = process.env.MONGO_URI ?? "mongodb://localhost:27017";
+import { getSecrets } from "../../config/secrets";
 
 const MONGO_DB_NAME = process.env.MONGO_DB_NAME ?? "hookcatcher";
 const MONGO_COLLECTION_NAME = "request_payloads";
 
 let client: MongoClient | null = null;
+
+async function buildMongoConfig(): Promise<{
+  uri: string;
+  options: MongoClientOptions;
+}> {
+  const secrets = await getSecrets();
+
+  return {
+    uri: secrets.MONGO_URI,
+    options: {
+      connectTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 5000,
+      maxPoolSize: 10,
+      retryWrites: process.env.MONGO_RETRY_WRITES === "true",
+    },
+  };
+}
 
 /**
  * Connects to a MongoDB database using the provided or default configuration.
@@ -22,7 +30,7 @@ let client: MongoClient | null = null;
  * @returns The connected MongoClient instance.
  */
 async function connect(
-  uri: string = defaultUri,
+  uri?: string,
   options: MongoClientOptions = {},
 ): Promise<MongoClient> {
   if (client) {
@@ -30,7 +38,12 @@ async function connect(
     return client;
   }
 
-  client = new MongoClient(uri, { ...defaultConfig, ...options });
+  const { uri: defaultUri, options: defaultOptions } = await buildMongoConfig();
+
+  client = new MongoClient(uri ?? defaultUri, {
+    ...defaultOptions,
+    ...options,
+  });
 
   try {
     await client.connect();
