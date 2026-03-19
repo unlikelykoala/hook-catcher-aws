@@ -1,7 +1,7 @@
 import { MongoClient, MongoClientOptions } from "mongodb";
+import { getServerConfig } from "../../config/serverConfig";
 import { getSecrets } from "../../config/secrets";
 
-const MONGO_DB_NAME = process.env.MONGO_DB_NAME ?? "hookcatcher";
 const MONGO_COLLECTION_NAME = "request_payloads";
 
 let client: MongoClient | null = null;
@@ -10,6 +10,7 @@ async function buildMongoConfig(): Promise<{
   uri: string;
   options: MongoClientOptions;
 }> {
+  const serverConfig = getServerConfig();
   const secrets = await getSecrets();
 
   return {
@@ -18,7 +19,7 @@ async function buildMongoConfig(): Promise<{
       connectTimeoutMS: 5000,
       serverSelectionTimeoutMS: 5000,
       maxPoolSize: 10,
-      retryWrites: process.env.MONGO_RETRY_WRITES === "true",
+      retryWrites: serverConfig.MONGO_RETRY_WRITES,
     },
   };
 }
@@ -76,4 +77,8 @@ async function disconnect(): Promise<void> {
   }
 }
 
-export default { connect, disconnect, MONGO_COLLECTION_NAME, MONGO_DB_NAME };
+function getMongoDbName(): string {
+  return getServerConfig().MONGO_DB_NAME;
+}
+
+export default { connect, disconnect, getMongoDbName, MONGO_COLLECTION_NAME };
