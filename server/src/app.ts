@@ -14,14 +14,14 @@ app.use(express.json());
 
 // Routes
 
-app.get("/health", (_req, res) => {
+app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
 // Mount API routes
 app.use("/api/bins", binHandler);
 
-// Mount webhook capture routes under a dedicated prefix to avoid SPA routing conflicts.
-app.use("/hooks", webhookHandler);
+// Mount webhook capture routes under the API namespace.
+app.use("/api/hooks", webhookHandler);
 
 export default app;
