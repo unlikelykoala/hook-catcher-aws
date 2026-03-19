@@ -1,22 +1,24 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useState } from "react"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
 type NewBinCreatorProps = {
-  onCreateBin: () => void | Promise<void>;
-};
+  onCreateBin: () => void | Promise<void>
+}
 
 export function NewBinCreator({ onCreateBin }: NewBinCreatorProps) {
-  const [isCreating, setIsCreating] = useState(false);
-  const title = "New Bin";
-  const description = "Create a bin to collect and inspect HTTP requests";
+  const [isCreating, setIsCreating] = useState(false)
+  const title = "New Bin"
+  const description = "Create a bin to collect and inspect HTTP requests"
 
   async function handleCreateBin() {
-    setIsCreating(true);
+    setIsCreating(true)
+
     try {
-      await onCreateBin();
+      await onCreateBin()
     } finally {
-      setIsCreating(false);
+      setIsCreating(false)
     }
   }
 
@@ -47,5 +49,5 @@ export function NewBinCreator({ onCreateBin }: NewBinCreatorProps) {
         </CardContent>
       </Card>
     </section>
-  );
+  )
 }

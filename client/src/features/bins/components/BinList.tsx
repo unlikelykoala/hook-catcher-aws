@@ -1,11 +1,12 @@
-import { appOrigin } from "@/config/env";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Link } from "react-router-dom";
-import type { PersistedBin } from "./schema";
+import { Link } from "react-router-dom"
+
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import type { PersistedBin } from "@/features/bins/types"
+import { getInspectPath, getInspectUrl } from "@/features/bins/lib/urls"
 
 type BinListProps = {
-  bins: PersistedBin[];
-};
+  bins: PersistedBin[]
+}
 
 export function BinList({ bins }: BinListProps) {
   return (
@@ -20,10 +21,10 @@ export function BinList({ bins }: BinListProps) {
           ) : (
             <ul className="space-y-3">
               {bins.map((bin) => {
-                const inspectUrl = `/bins/${bin.id}`;
-                const fullInspectUrl = `${appOrigin}${inspectUrl}`;
-                const createdDate = bin.created_at.toLocaleDateString();
-                const expiresDate = bin.expires_at.toLocaleDateString();
+                const inspectPath = getInspectPath(bin.id)
+                const fullInspectUrl = getInspectUrl(bin.id)
+                const createdDate = bin.created_at.toLocaleDateString()
+                const expiresDate = bin.expires_at.toLocaleDateString()
 
                 return (
                   <li
@@ -49,7 +50,7 @@ export function BinList({ bins }: BinListProps) {
                           View at:
                         </span>{" "}
                         <Link
-                          to={inspectUrl}
+                          to={inspectPath}
                           className="font-medium text-primary underline underline-offset-4 transition-colors hover:text-primary/80"
                         >
                           {fullInspectUrl}
@@ -57,12 +58,12 @@ export function BinList({ bins }: BinListProps) {
                       </span>
                     </p>
                   </li>
-                );
+                )
               })}
             </ul>
           )}
         </CardContent>
       </Card>
     </section>
-  );
+  )
 }

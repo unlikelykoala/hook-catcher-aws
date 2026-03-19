@@ -1,21 +1,35 @@
+import { useEffect, useState, type MouseEvent, type ReactNode } from "react"
+import { useNavigate, useParams } from "react-router-dom"
+import { toast } from "sonner"
+import {
+  CalendarDays,
+  CircleSlash2,
+  Clock,
+  RefreshCwIcon,
+  RotateCwIcon,
+  Shredder,
+  Trash,
+  Trash2,
+} from "lucide-react"
+
+import CopyButton from "@/components/common/CopyButton"
+import NavBar from "@/components/layout/NavBar"
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-
+import { Button } from "@/components/ui/button"
+import { ButtonGroup } from "@/components/ui/button-group"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  Clock,
-  CalendarDays,
-  RefreshCwIcon,
-  RotateCwIcon,
-  Shredder,
-  Trash,
-  Trash2,
-  CircleSlash2,
-} from "lucide-react"
-
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Empty,
   EmptyDescription,
@@ -23,45 +37,31 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
-
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu"
-
-import NavBar from "@/components/custom-ui/NavBar.tsx"
-import CopyButton from "@/components/custom-ui/Button_Copy.tsx"
-import { Button } from "@/components/ui/button"
-import { ButtonGroup } from "@/components/ui/button-group"
 import { Item, ItemContent, ItemMedia } from "@/components/ui/item"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Spinner } from "@/components/ui/spinner.tsx"
+import { Spinner } from "@/components/ui/spinner"
+import * as binsApi from "@/features/bins/api/bins"
+import { useBinWebSocket } from "@/features/bins/hooks/useBinWebSocket"
+import { formatRequestBody } from "@/features/bins/lib/formatters"
+import { getSendUrl } from "@/features/bins/lib/urls"
+import type { BinWithRequests, RequestDocument } from "@/features/bins/types"
 
-import { useParams, useNavigate } from "react-router"
-import { backendOrigin } from "@/config/env"
-import * as binService from "./fetch_bins.ts"
-import React, { useEffect, useState } from "react"
-import type { BinWithRequests, RequestDocument } from "@/types/request.ts"
-import { toast } from "sonner"
-import useBinWebSocket from "@/hooks/useBinWebSocket.ts"
-
-export default function BinView() {
+export function BinViewPage() {
   const [bin, setBin] = useState<BinWithRequests | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const { id } = useParams()
-  const nav = useNavigate()
+  const navigate = useNavigate()
 
-  async function getBin(id: string) {
+  async function loadBin(binId: string) {
     try {
       setError(null)
-      setBin(await binService.getBin(id))
-    } catch (err) {
+      setBin(await binsApi.getBin(binId))
+    } catch (nextError) {
       const message =
-        err instanceof Error ? err.message : `Failed to fetch bin ${id}`
+        nextError instanceof Error
+          ? nextError.message
+          : `Failed to fetch bin ${binId}`
+
       setError(message)
       setBin(null)
     } finally {
@@ -69,36 +69,42 @@ export default function BinView() {
     }
   }
 
-  async function deleteBin(id: string | undefined) {
-    if (!id) return
-    await binService.deleteBin(id)
-    nav("/")
-    toast.success(`Bin ${id} has been deleted`)
+  async function handleDeleteBin(binId: string | undefined) {
+    if (!binId) return
+
+    await binsApi.deleteBin(binId)
+    navigate("/")
+    toast.success(`Bin ${binId} has been deleted`)
   }
 
-  async function refreshBin() {
+  async function handleRefreshBin() {
     if (!id) return
+
     setLoading(true)
-    await getBin(id)
+    await loadBin(id)
   }
 
   useEffect(() => {
     if (!id) return
 
+    const binId = id
     let isSubscribed = true
 
-    async function loadBin() {
+    async function fetchBin() {
       try {
-        setError(null)
-        const nextBin = await binService.getBin(id as string)
+        const nextBin = await binsApi.getBin(binId)
 
         if (isSubscribed) {
+          setError(null)
           setBin(nextBin)
         }
-      } catch (err) {
+      } catch (nextError) {
         if (isSubscribed) {
           const message =
-            err instanceof Error ? err.message : `Failed to fetch bin ${id}`
+            nextError instanceof Error
+              ? nextError.message
+              : `Failed to fetch bin ${binId}`
+
           setError(message)
           setBin(null)
         }
@@ -109,7 +115,7 @@ export default function BinView() {
       }
     }
 
-    loadBin()
+    void fetchBin()
 
     return () => {
       isSubscribed = false
@@ -133,32 +139,33 @@ export default function BinView() {
   return (
     <div>
       <NavBar>
-        <BasketEditButtonBar
-          deleteBinCB={() => deleteBin(id)}
-          refresh={refreshBin}
+        <BinActions
+          onDeleteBin={() => handleDeleteBin(id)}
+          onRefreshBin={handleRefreshBin}
         />
       </NavBar>
-      <BasketInfoHeader bin={bin} />
+      <BinInfoHeader bin={bin} />
       {loading ? (
         <Spinner className="mx-auto size-14 min-h-150" />
       ) : error ? (
         <EmptyRequestList message={error} />
       ) : (
-        <RequestList requests={bin && bin.requests} />
+        <RequestList requests={bin?.requests ?? null} />
       )}
     </div>
   )
 }
 
-function BasketInfoHeader({ bin }: { bin: BinWithRequests | null }) {
-  const basketUrl = bin ? `${backendOrigin}/api/hooks/${bin.bin.id}` : null
+function BinInfoHeader({ bin }: { bin: BinWithRequests | null }) {
+  const binId = bin?.bin.id ?? ""
+  const binUrl = bin ? getSendUrl(bin.bin.id) : ""
 
   return (
     <section className="mx-auto max-w-4xl p-3">
-      <h1 className="text-2xl font-bold">Bin: {bin?.bin.id ?? ""}</h1>
+      <h1 className="text-2xl font-bold">Bin: {binId}</h1>
       <p>
-        Bin URL: {basketUrl ?? ""}
-        {basketUrl && <CopyButton content={basketUrl} />}
+        Bin URL: {binUrl}
+        {bin ? <CopyButton content={binUrl} /> : null}
       </p>
       <p>Request Count: {bin?.requests.length ?? 0}</p>
     </section>
@@ -170,10 +177,9 @@ function RequestList({ requests }: { requests: RequestDocument[] | null }) {
 
   return (
     <section className="mx-auto grid max-w-4xl grid-cols-[repeat(auto-fill,minmax(28rem,1fr))] items-start">
-      {requests &&
-        requests.map((req: RequestDocument) => {
-          return <RequestDetails key={req._id} request={req} />
-        })}
+      {requests.map((request) => (
+        <RequestDetails key={request._id} request={request} />
+      ))}
     </section>
   )
 }
@@ -216,25 +222,22 @@ function RequestDetails({ request }: { request: RequestDocument }) {
 }
 
 function RequestHeadersAndBody({ request }: { request: RequestDocument }) {
-  const readableHeaders = Object.entries(request.headers).map((entry) => {
-    const [header, value] = entry
-    return <div className="m-0" key={header}>{`${header}: ${value}`}</div>
-  })
-
   return (
     <Accordion type="single" collapsible defaultValue="">
-      <AccordionItem value="item-1">
+      <AccordionItem value="headers">
         <AccordionTrigger>Headers</AccordionTrigger>
         <AccordionContent>
-          <SimpleCodeBlock>{readableHeaders}</SimpleCodeBlock>
+          <SimpleCodeBlock copyButtonVisible={false}>
+            {Object.entries(request.headers).map(([header, value]) => (
+              <div className="m-0" key={header}>{`${header}: ${value}`}</div>
+            ))}
+          </SimpleCodeBlock>
         </AccordionContent>
       </AccordionItem>
-      <AccordionItem value="item-2">
+      <AccordionItem value="body">
         <AccordionTrigger>Body</AccordionTrigger>
         <AccordionContent>
-          <SimpleCodeBlock
-            content={JSON.stringify(JSON.parse(request.body), null, 2)}
-          />
+          <SimpleCodeBlock content={formatRequestBody(request.body)} />
         </AccordionContent>
       </AccordionItem>
     </Accordion>
@@ -244,7 +247,7 @@ function RequestHeadersAndBody({ request }: { request: RequestDocument }) {
 type SimpleCodeBlockProps = {
   content?: string
   copyButtonVisible?: boolean
-  children?: React.ReactNode
+  children?: ReactNode
 }
 
 function SimpleCodeBlock({
@@ -255,12 +258,12 @@ function SimpleCodeBlock({
   return (
     <Item className="bg-secondary">
       <ItemContent>
-        {content && <pre>{content}</pre>}
+        {content ? <pre>{content}</pre> : null}
         {children}
       </ItemContent>
-      {copyButtonVisible && (content || children) && (
-        <CopyButton content={content || null} />
-      )}
+      {copyButtonVisible && (content || children) ? (
+        <CopyButton content={content ?? null} />
+      ) : null}
     </Item>
   )
 }
@@ -302,17 +305,17 @@ function DateStamp({ received }: { received: Date }) {
   )
 }
 
-function notYetImplemented(ev: React.MouseEvent) {
-  ev.preventDefault()
+function notYetImplemented(event: MouseEvent) {
+  event.preventDefault()
   toast.error("Not yet implemented")
 }
 
-type BasketEditProps = {
-  deleteBinCB: Function
-  refresh: Function
+type BinActionsProps = {
+  onDeleteBin: () => void
+  onRefreshBin: () => void
 }
 
-function BasketEditButtonBar({ deleteBinCB, refresh }: BasketEditProps) {
+function BinActions({ onDeleteBin, onRefreshBin }: BinActionsProps) {
   return (
     <ButtonGroup>
       <ButtonGroup className="flex">
@@ -321,7 +324,7 @@ function BasketEditButtonBar({ deleteBinCB, refresh }: BasketEditProps) {
           size="icon"
           aria-label="Refresh"
           title="Refresh"
-          onClick={() => refresh()}
+          onClick={onRefreshBin}
         >
           <RefreshCwIcon />
         </Button>
@@ -354,7 +357,7 @@ function BasketEditButtonBar({ deleteBinCB, refresh }: BasketEditProps) {
                 <Shredder />
                 Delete all requests
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => deleteBinCB()}>
+              <DropdownMenuItem onClick={onDeleteBin}>
                 <Trash2 />
                 Destroy basket
               </DropdownMenuItem>
@@ -365,3 +368,5 @@ function BasketEditButtonBar({ deleteBinCB, refresh }: BasketEditProps) {
     </ButtonGroup>
   )
 }
+
+export default BinViewPage

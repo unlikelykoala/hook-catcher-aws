@@ -1,19 +1,17 @@
-/**
-  A general purpose "Copy" button, 
-  like you might use to copy text from a Code Block
- */
+import { Copy } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { Copy } from "lucide-react"
+
+type CopyButtonProps = {
+  content: string | null
+  className?: string
+}
 
 export default function CopyButton({
   content,
   className = "",
-}: {
-  content: string | null
-  className?: string
-}) {
+}: CopyButtonProps) {
   return (
     <Button
       variant="ghost"
@@ -21,7 +19,7 @@ export default function CopyButton({
       aria-label="Copy to clipboard"
       title="Copy to clipboard"
       className={cn("hover:filter-[invert(20%)] active:bg-red-500", className)}
-      onClick={() => navigator.clipboard.writeText(content || "")}
+      onClick={() => navigator.clipboard.writeText(content ?? "")}
     >
       <Copy />
     </Button>

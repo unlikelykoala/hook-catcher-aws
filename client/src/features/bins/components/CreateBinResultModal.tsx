@@ -1,14 +1,15 @@
-import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom"
+
+import CopyButton from "@/components/common/CopyButton"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
-} from "@/components/ui/card";
-import { backendOrigin } from "@/config/env";
-import { Link } from "react-router-dom";
-import CopyButton from "./Button_Copy";
-import type { PersistedBin } from "./schema";
+} from "@/components/ui/card"
+import { getInspectPath, getSendUrl } from "@/features/bins/lib/urls"
+import type { PersistedBin } from "@/features/bins/types"
 
 export type CreateBinResult =
   | { status: "success"; bin: PersistedBin }
@@ -23,16 +24,13 @@ export function CreateBinResultModal({
   result,
   onClose,
 }: CreateBinResultModalProps) {
-  if (!result) {
-    return null
-  }
+  if (!result) return null
 
-  const isSuccess = result.status === "success";
-  const binId = isSuccess ? result.bin.id : null;
-  const title = isSuccess ? "Created" : "Failed to Create Bin";
-  const sendUrl = binId ? `/api/hooks/${binId}` : null;
-  const inspectUrl = binId ? `/bins/${binId}` : null;
-  const fullSendUrl = sendUrl ? `${backendOrigin}${sendUrl}` : null;
+  const isSuccess = result.status === "success"
+  const binId = isSuccess ? result.bin.id : null
+  const title = isSuccess ? "Created" : "Failed to Create Bin"
+  const sendUrl = binId ? getSendUrl(binId) : null
+  const inspectPath = binId ? getInspectPath(binId) : "/"
 
   return (
     <div
@@ -73,13 +71,13 @@ export function CreateBinResultModal({
               <p>
                 Your API URL is:{" "}
                 <span className="inline-flex items-center gap-1 rounded-sm bg-amber-200 px-1 text-black">
-                  <span>{fullSendUrl}</span>
-                  {fullSendUrl && (
+                  <span>{sendUrl}</span>
+                  {sendUrl ? (
                     <CopyButton
-                      content={fullSendUrl}
+                      content={sendUrl}
                       className="h-7 w-7 text-black hover:bg-black/10"
                     />
-                  )}
+                  ) : null}
                 </span>
               </p>
             </>
@@ -92,11 +90,11 @@ export function CreateBinResultModal({
           <Button type="button" variant="secondary" onClick={onClose}>
             Close
           </Button>
-          {isSuccess && (
+          {isSuccess ? (
             <Button type="button" asChild>
-              <Link to={inspectUrl ?? "/"}>Open Bin</Link>
+              <Link to={inspectPath}>Open Bin</Link>
             </Button>
-          )}
+          ) : null}
         </CardFooter>
       </Card>
     </div>

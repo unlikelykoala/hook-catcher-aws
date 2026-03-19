@@ -2,7 +2,8 @@ import { useEffect, useEffectEvent } from "react"
 import { z } from "zod"
 
 import { backendUrl } from "@/config/env"
-import { RequestDocumentSchema, type RequestDocument } from "@/types/request"
+import { RequestDocumentSchema } from "@/features/bins/schemas/request"
+import type { RequestDocument } from "@/features/bins/types"
 
 const BinWebSocketMessageSchema = z.object({
   type: z.literal("new_request"),
@@ -38,16 +39,13 @@ export function useBinWebSocket({
         )
 
         handleNewRequest(parsedMessage.payload)
-      } catch {
+      } catch (error) {
+        console.error("Failed to parse websocket message", error)
       }
     }
-
-    webSocket.onclose = () => {}
 
     return () => {
       webSocket.close()
     }
   }, [binId])
 }
-
-export default useBinWebSocket
